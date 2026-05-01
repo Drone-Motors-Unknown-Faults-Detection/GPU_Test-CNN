@@ -15,4 +15,4 @@ echo "[INFO] Install python3 required package"
 pip install -r requirements.txt
 echo "[INFO] Install completed"
 
-deactivat
+deactivate
