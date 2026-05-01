@@ -1,4 +1,4 @@
-# GPU-MNIST
+# CNN 模型運行 GPU 測試程式
 
 用 CNN / ResNet 模型訓練影像分類，包含 MNIST 手寫數字與 CIFAR-10 彩色圖片，並說明如何讓訓練跑在 GPU 上。
 
