@@ -219,6 +219,9 @@ __marimo__/
 
 
 data/*
+*.gz
+*.tar.gz
+
 
 .claude/
 .vscode/
