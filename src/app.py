@@ -4,95 +4,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import time
-import os
-from datetime import datetime
 from tqdm import tqdm
+from logger import TrainingLogger
 
 # 設為 False 可關閉訓練紀錄匯出
 ENABLE_LOGGING = True
-
-
-class TrainingLogger:
-    """將訓練過程紀錄並匯出成 txt 檔。enabled=False 時所有方法皆為 no-op。"""
-
-    def __init__(self, enabled: bool = True):
-        self.enabled = enabled
-        self.epoch_records = []
-        self.start_time: datetime = datetime.now()
-        self.total_time: float = 0.0
-
-        # 取得裝置資訊，供匯出時寫入
-        if torch.cuda.is_available():
-            self.device_type = "cuda"
-            self.device_name = torch.cuda.get_device_name(0)
-            total_mem = torch.cuda.get_device_properties(0).total_memory / 1e9
-            self.device_info = f"{self.device_name} ({total_mem:.2f} GB)"
-        else:
-            self.device_type = "cpu"
-            self.device_name = "CPU"
-            self.device_info = "CPU"
-
-    def start(self):
-        """記錄訓練開始時間，應在訓練迴圈前呼叫。"""
-        if not self.enabled:
-            return
-        self.start_time = datetime.now()
-
-    def log_epoch(self, epoch: int, total_epochs: int, loss: float, train_acc: float, test_acc: float, elapsed: float):
-        """記錄單一 epoch 的結果，應在每個 epoch 結束後呼叫。"""
-        if not self.enabled:
-            return
-        self.epoch_records.append({
-            "epoch": epoch,
-            "total_epochs": total_epochs,
-            "loss": loss,
-            "train_acc": train_acc,
-            "test_acc": test_acc,
-            "elapsed": elapsed,
-        })
-
-    def finish(self, total_time: float):
-        """記錄總訓練時間，應在訓練迴圈結束後呼叫。"""
-        if not self.enabled:
-            return
-        self.total_time = total_time
-
-    def export(self, output_dir: str = "."):
-        """將完整訓練紀錄寫入 txt，檔名包含訓練開始時間。"""
-        if not self.enabled:
-            return
-        os.makedirs(output_dir, exist_ok=True)
-        filename = self.start_time.strftime("training_log_%Y%m%d_%H%M%S.txt")
-        filepath = os.path.join(output_dir, filename)
-
-        lines = []
-        lines.append("=" * 50)
-        lines.append("MNIST CNN 訓練紀錄")
-        lines.append("=" * 50)
-        lines.append(f"訓練裝置類型 : {self.device_type.upper()}")
-        lines.append(f"裝置名稱     : {self.device_info}")
-        lines.append(f"訓練開始時間 : {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-        lines.append(f"總訓練時間   : {self.total_time:.2f} 秒")
-        lines.append("")
-        lines.append("-" * 50)
-        lines.append(f"{'Epoch':<8} {'Loss':<10} {'Train Acc':<12} {'Test Acc':<12} {'累計時間'}")
-        lines.append("-" * 50)
-        for r in self.epoch_records:
-            lines.append(
-                f"{r['epoch']}/{r['total_epochs']:<5} "
-                f"{r['loss']:<10.4f} "
-                f"{r['train_acc']:<12.2f} "
-                f"{r['test_acc']:<12.2f} "
-                f"{r['elapsed']:.2f}s"
-            )
-        lines.append("-" * 50)
-        lines.append("")
-        lines.append("訓練完成")
-
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
-
-        print(f"訓練紀錄已儲存至 {filepath}")
 
 
 class CNN(nn.Module):
@@ -220,7 +136,7 @@ if __name__ == '__main__':
     print(f"\n訓練完成！耗時: {total_time:.2f} 秒")
 
     logger.finish(total_time)
-    logger.export(output_dir="./logs")
+    logger.export(title="MNIST CNN 訓練紀錄", output_dir="./logs/MNIST")
 
     torch.save(model.state_dict(), 'mnist_cnn.pth')
     print("模型已保存為 mnist_cnn.pth")
