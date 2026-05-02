@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     batch_size = 256
     learning_rate = 0.001
-    epochs = 20
+    epochs = 100
 
     # 訓練集加入隨機裁切與水平翻轉做資料增強，提升模型泛化能力
     train_transform = transforms.Compose([

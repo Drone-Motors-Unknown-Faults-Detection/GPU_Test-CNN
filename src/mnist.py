@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     batch_size = 128
     learning_rate = 0.001
-    epochs = 10
+    epochs = 50
 
     # 標準化參數來自 MNIST 全資料集的均值與標準差
     transform = transforms.Compose([
