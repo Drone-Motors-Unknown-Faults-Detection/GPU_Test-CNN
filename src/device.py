@@ -4,6 +4,8 @@ from typing import Any, Dict, Optional, Tuple
 
 import torch
 
+_IS_WINDOWS = platform.system() == "Windows"
+
 
 @dataclass(frozen=True)
 class MacChipInfo:
@@ -68,10 +70,14 @@ def get_dataloader_kwargs_for_device(device: torch.device) -> Dict[str, Any]:
     """
     依 device 給 DataLoader 的建議參數（穩定性優先）。
     - pin_memory：對 cuda 有幫助；對 mps/cpu 通常無益
-    - num_workers：mps 在部分環境上多 worker 可能不穩，預設改 0
+    - num_workers：Windows 使用 spawn 啟動行程，開銷遠高於 Linux 的 fork；
+      設為 0 可避免 Windows 上高 CPU 佔用與偶發的 DataLoader worker 卡死
+    - persistent_workers：num_workers > 0 時保持 worker 存活，省去 epoch 間重啟開銷
     """
     if device.type == "cuda":
-        return {"num_workers": 4, "pin_memory": True}
+        if _IS_WINDOWS:
+            return {"num_workers": 0, "pin_memory": True}
+        return {"num_workers": 4, "pin_memory": True, "persistent_workers": True}
     if device.type == "mps":
         return {"num_workers": 0, "pin_memory": False}
-    return {"num_workers": 4, "pin_memory": False}
+    return {"num_workers": 0, "pin_memory": False}
